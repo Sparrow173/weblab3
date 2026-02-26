@@ -1,6 +1,6 @@
 "use strict";
 import { mountModals } from "./ui.js";
-import { createEmptyGrid, spawnRandomTiles } from "./game.js";
+import { createEmptyGrid, spawnRandomTiles, applyMove, canMove, cloneGrid } from "./game.js";
 
 function el(tag, opts = {}) {
   const node = document.createElement(tag);
@@ -64,6 +64,7 @@ mountModals(document.body);
 
 let grid = createEmptyGrid();
 let score = 0;
+let isGameOver = false;
 
 // стартовые плитки
 spawnRandomTiles(grid, 2);
@@ -87,3 +88,52 @@ function render() {
 }
 
 render();
+
+function startNewGame() {
+  grid = createEmptyGrid();
+  score = 0;
+  isGameOver = false;
+
+  spawnRandomTiles(grid, 2);
+
+  render();
+}
+
+function tryMove(dir) {
+  if (isGameOver) return;
+
+  const res = applyMove(grid, dir);
+
+  // если ход ничего не поменял — НЕ добавляем новые плитки
+  if (!res.changed) return;
+
+  grid = res.grid;
+  score += res.scoreGained;
+
+  // после успешного хода появляется 1–2 плитки
+  const spawnCount = Math.random() < 0.25 ? 2 : 1;
+  spawnRandomTiles(grid, spawnCount);
+
+  // проверка окончания игры
+  if (!canMove(grid)) {
+    isGameOver = true;
+  }
+
+  render();
+}
+
+document.addEventListener("keydown", (e) => {
+  const map = {
+    ArrowLeft: "left",
+    ArrowRight: "right",
+    ArrowUp: "up",
+    ArrowDown: "down",
+  };
+
+  const dir = map[e.key];
+  if (!dir) return;
+
+  e.preventDefault(); // чтобы не скроллилась страница
+  tryMove(dir);
+});
+document.querySelector("#btnNew").addEventListener("click", startNewGame);
