@@ -166,3 +166,15 @@ body{
   font-size: 14px;
 }
 .leaders-table th{ font-weight: 800; }
+
+.tile--2{ background:#eee4da; color:#776e65; }
+.tile--4{ background:#ede0c8; color:#776e65; }
+.tile--8{ background:#f2b179; color:#f9f6f2; }
+.tile--16{ background:#f59563; color:#f9f6f2; }
+.tile--32{ background:#f67c5f; color:#f9f6f2; }
+.tile--64{ background:#f65e3b; color:#f9f6f2; }
+.tile--128{ background:#edcf72; color:#f9f6f2; font-size:22px; }
+.tile--256{ background:#edcc61; color:#f9f6f2; font-size:22px; }
+.tile--512{ background:#edc850; color:#f9f6f2; font-size:22px; }
+.tile--1024{ background:#edc53f; color:#f9f6f2; font-size:20px; }
+.tile--2048{ background:#edc22e; color:#f9f6f2; font-size:20px; }

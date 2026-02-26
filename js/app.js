@@ -1,5 +1,6 @@
 "use strict";
 import { mountModals } from "./ui.js";
+import { createEmptyGrid, spawnRandomTiles } from "./game.js";
 
 function el(tag, opts = {}) {
   const node = document.createElement(tag);
@@ -60,3 +61,29 @@ buildLayout(document.querySelector("#app"));
 
 buildLayout(document.querySelector("#app"));
 mountModals(document.body);
+
+let grid = createEmptyGrid();
+let score = 0;
+
+// стартовые плитки
+spawnRandomTiles(grid, 2);
+
+function render() {
+  document.querySelector("#score").textContent = String(score);
+
+  const cells = document.querySelectorAll("#board .cell");
+  let idx = 0;
+
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const v = grid[r][c];
+      const cell = cells[idx++];
+
+      cell.textContent = v === 0 ? "" : String(v);
+      cell.className = "cell";
+      if (v !== 0) cell.classList.add(`tile--${v}`);
+    }
+  }
+}
+
+render();
