@@ -4,50 +4,112 @@ function el(tag, opts = {}) {
   const node = document.createElement(tag);
   if (opts.className) node.className = opts.className;
   if (opts.text != null) node.textContent = opts.text;
+  if (opts.html != null) node.innerHTML = opts.html;
   if (opts.attrs) {
     for (const [k, v] of Object.entries(opts.attrs)) node.setAttribute(k, v);
   }
-  if (opts.children) {
-    for (const ch of opts.children) node.appendChild(ch);
-  }
+  if (opts.children) for (const ch of opts.children) node.appendChild(ch);
   return node;
 }
 
-function buildLayout(root) {
-  const title = el("h1", { className: "title", text: "2048" });
+export function mountModals(root = document.body) {
+  const overlay = el("div", { className: "modal-overlay hidden", attrs: { id: "overlay" } });
 
-  const scoreLabel = el("div", { className: "score-label", text: "Очки" });
-  const scoreValue = el("div", { className: "score-value", text: "0", attrs: { id: "score" } });
-  const scoreBox = el("div", { className: "score-box", children: [scoreLabel, scoreValue] });
+  // Game Over modal
+  const goTitle = el("div", { className: "modal-title", text: "Игра окончена" });
+  const goMsg = el("div", { className: "modal-text", attrs: { id: "goMsg" }, text: "Нет возможных ходов." });
 
-  const btnNew = el("button", { className: "btn", text: "Новая игра", attrs: { id: "btnNew", type: "button" } });
-  const btnUndo = el("button", { className: "btn", text: "Undo", attrs: { id: "btnUndo", type: "button" } });
-  const btnLeaders = el("button", { className: "btn btn-secondary", text: "Лидеры", attrs: { id: "btnLeaders", type: "button" } });
-
-  const actions = el("div", { className: "actions", children: [btnNew, btnUndo, btnLeaders] });
-  const header = el("div", { className: "header", children: [title, scoreBox, actions] });
-
-  const board = el("div", {
-    className: "board",
-    attrs: { id: "board", role: "application", "aria-label": "Игровое поле 2048" }
+  const nameInput = el("input", {
+    className: "modal-input",
+    attrs: { id: "goName", placeholder: "Ваше имя", maxlength: "20" }
   });
 
-  const mUp = el("button", { className: "mbtn", text: "↑", attrs: { id: "mUp", type: "button" } });
-  const mLeft = el("button", { className: "mbtn", text: "←", attrs: { id: "mLeft", type: "button" } });
-  const mDown = el("button", { className: "mbtn", text: "↓", attrs: { id: "mDown", type: "button" } });
-  const mRight = el("button", { className: "mbtn", text: "→", attrs: { id: "mRight", type: "button" } });
+  const btnSave = el("button", { className: "btn", text: "Сохранить результат", attrs: { id: "goSave", type: "button" } });
+  const btnRestart = el("button", { className: "btn btn-secondary", text: "Начать заново", attrs: { id: "goRestart", type: "button" } });
 
-  const mobile = el("div", {
-    className: "mobile-controls hidden",
-    attrs: { id: "mobileControls" },
-    children: [
-      el("div", { className: "mobile-row", children: [mUp] }),
-      el("div", { className: "mobile-row", children: [mLeft, mDown, mRight] }),
-    ],
+  const goActions = el("div", { className: "modal-actions", children: [btnSave, btnRestart] });
+  const gameOverModal = el("div", {
+    className: "modal hidden",
+    attrs: { id: "modalGameOver", role: "dialog", "aria-modal": "true" },
+    children: [goTitle, goMsg, nameInput, goActions]
   });
 
-  const main = el("div", { className: "main", children: [header, board, mobile] });
-  root.appendChild(main);
+  // Leaders modal
+  const leadersTitle = el("div", { className: "modal-title", text: "Таблица лидеров (Top-10)" });
+  const closeLeaders = el("button", { className: "btn btn-secondary", text: "Закрыть", attrs: { id: "leadersClose", type: "button" } });
+  const table = el("table", { className: "leaders-table", attrs: { id: "leadersTable" } });
+
+  const leadersModal = el("div", {
+    className: "modal hidden",
+    attrs: { id: "modalLeaders", role: "dialog", "aria-modal": "true" },
+    children: [leadersTitle, table, closeLeaders]
+  });
+
+  overlay.appendChild(gameOverModal);
+  overlay.appendChild(leadersModal);
+  root.appendChild(overlay);
 }
 
-buildLayout(document.querySelector("#app"));
+export function showModal(selector) {
+  const overlay = document.querySelector("#overlay");
+  const go = document.querySelector("#modalGameOver");
+  const лид = document.querySelector("#modalLeaders");
+  overlay.classList.remove("hidden");
+  go.classList.add("hidden");
+  лид.classList.add("hidden");
+  document.querySelector(selector).classList.remove("hidden");
+}
+
+export function hideAllModals() {
+  document.querySelector("#overlay").classList.add("hidden");
+  document.querySelector("#modalGameOver").classList.add("hidden");
+  document.querySelector("#modalLeaders").classList.add("hidden");
+}
+
+export function resetGameOverUI() {
+  const msg = document.querySelector("#goMsg");
+  const input = document.querySelector("#goName");
+  msg.textContent = "Нет возможных ходов.";
+  input.classList.remove("hidden");
+  input.value = "";
+}
+
+export function setGameOverSavedUI() {
+  const msg = document.querySelector("#goMsg");
+  const input = document.querySelector("#goName");
+  msg.textContent = "Ваш рекорд сохранён.";
+  input.classList.add("hidden");
+}
+
+export function renderLeadersTable(list) {
+  const table = document.querySelector("#leadersTable");
+  const head = `
+    <thead>
+      <tr><th>#</th><th>Имя</th><th>Очки</th><th>Дата</th></tr>
+    </thead>
+  `;
+  const rows = list.map((x, i) => {
+    const d = new Date(x.dateISO);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(x.name)}</td>
+      <td>${x.score}</td>
+      <td>${dd}.${mm}.${yy} ${hh}:${mi}</td>
+    </tr>`;
+  }).join("");
+
+  table.innerHTML = head + `<tbody>${rows || `<tr><td colspan="4">Пока нет рекордов</td></tr>`}</tbody>`;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}

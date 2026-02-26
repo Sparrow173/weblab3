@@ -117,3 +117,52 @@ body{
   .title{ font-size: 40px; }
   .cell{ font-size: 24px; }
 }
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.modal{
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.modal-title{
+  font-weight: 900;
+  font-size: 18px;
+}
+.modal-text{ color: #444; }
+.modal-input{
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+}
+.modal-actions{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.leaders-table{
+  width: 100%;
+  border-collapse: collapse;
+}
+.leaders-table th, .leaders-table td{
+  border-bottom: 1px solid #eee;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 14px;
+}
+.leaders-table th{ font-weight: 800; }
