@@ -1,4 +1,5 @@
 "use strict";
+import { mountModals } from "./ui.js";
 
 function el(tag, opts = {}) {
   const node = document.createElement(tag);
@@ -32,6 +33,11 @@ function buildLayout(root) {
     attrs: { id: "board", role: "application", "aria-label": "Игровое поле 2048" }
   });
 
+  for (let i = 0; i < 16; i++) {
+  const cell = el("div", { className: "cell", attrs: { "data-idx": String(i) } });
+  board.appendChild(cell);
+  }
+
   const mUp = el("button", { className: "mbtn", text: "↑", attrs: { id: "mUp", type: "button" } });
   const mLeft = el("button", { className: "mbtn", text: "←", attrs: { id: "mLeft", type: "button" } });
   const mDown = el("button", { className: "mbtn", text: "↓", attrs: { id: "mDown", type: "button" } });
@@ -51,3 +57,6 @@ function buildLayout(root) {
 }
 
 buildLayout(document.querySelector("#app"));
+
+buildLayout(document.querySelector("#app"));
+mountModals(document.body);
