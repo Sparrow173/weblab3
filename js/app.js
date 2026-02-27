@@ -70,6 +70,14 @@ let undoState = null;
 // стартовые плитки
 spawnRandomTiles(grid, 2);
 
+setMobileControlsVisible(true);
+
+function setMobileControlsVisible(visible) {
+  const block = document.querySelector("#mobileControls");
+  if (!block) return;
+  block.classList.toggle("hidden", !visible);
+}
+
 function render() {
   document.querySelector("#score").textContent = String(score);
 
@@ -87,7 +95,7 @@ function render() {
     }
   }
 }
-
+setMobileControlsVisible(!isGameOver);
 render();
 
 function startNewGame() {
@@ -134,8 +142,9 @@ function tryMove(dir) {
   spawnRandomTiles(grid, spawnCount);
 
   if (!canMove(grid)) {
-    isGameOver = true;
-  }
+  isGameOver = true;
+  setMobileControlsVisible(false);
+}
 
   render();
 }
@@ -157,3 +166,7 @@ document.addEventListener("keydown", (e) => {
 
 document.querySelector("#btnNew").addEventListener("click", startNewGame);
 document.querySelector("#btnUndo").addEventListener("click", undo);
+document.querySelector("#mLeft").addEventListener("click", () => tryMove("left"));
+document.querySelector("#mRight").addEventListener("click", () => tryMove("right"));
+document.querySelector("#mUp").addEventListener("click", () => tryMove("up"));
+document.querySelector("#mDown").addEventListener("click", () => tryMove("down"));

@@ -98,6 +98,11 @@ body{
   gap: 10px;
   justify-items: center;
 }
+
+@media (min-width: 700px){
+  .mobile-controls{ display: none !important; }
+}
+
 .mobile-row{
   display:flex;
   gap: 10px;
