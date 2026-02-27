@@ -65,6 +65,7 @@ mountModals(document.body);
 let grid = createEmptyGrid();
 let score = 0;
 let isGameOver = false;
+let undoState = null;
 
 // стартовые плитки
 spawnRandomTiles(grid, 2);
@@ -93,8 +94,23 @@ function startNewGame() {
   grid = createEmptyGrid();
   score = 0;
   isGameOver = false;
+  undoState = null;
 
   spawnRandomTiles(grid, 2);
+
+  render();
+}
+
+function undo() {
+  if (isGameOver) return;
+
+  if (!undoState) return;
+
+  grid = cloneGrid(undoState.grid);
+  score = undoState.score;
+
+  // один шаг — после отката очищаем undo, чтобы не откатываться бесконечно
+  undoState = null;
 
   render();
 }
@@ -102,19 +118,21 @@ function startNewGame() {
 function tryMove(dir) {
   if (isGameOver) return;
 
+  const beforeGrid = cloneGrid(grid);
+  const beforeScore = score;
+
   const res = applyMove(grid, dir);
 
-  // если ход ничего не поменял — НЕ добавляем новые плитки
   if (!res.changed) return;
+
+  undoState = { grid: beforeGrid, score: beforeScore };
 
   grid = res.grid;
   score += res.scoreGained;
 
-  // после успешного хода появляется 1–2 плитки
   const spawnCount = Math.random() < 0.25 ? 2 : 1;
   spawnRandomTiles(grid, spawnCount);
 
-  // проверка окончания игры
   if (!canMove(grid)) {
     isGameOver = true;
   }
@@ -136,4 +154,6 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault(); // чтобы не скроллилась страница
   tryMove(dir);
 });
+
 document.querySelector("#btnNew").addEventListener("click", startNewGame);
+document.querySelector("#btnUndo").addEventListener("click", undo);
