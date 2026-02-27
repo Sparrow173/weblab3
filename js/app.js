@@ -1,6 +1,7 @@
 "use strict";
 import { mountModals } from "./ui.js";
 import { createEmptyGrid, spawnRandomTiles, applyMove, canMove, cloneGrid } from "./game.js";
+import { saveGameState, loadGameState, clearGameState } from "./storage.js";
 
 function el(tag, opts = {}) {
   const node = document.createElement(tag);
@@ -67,10 +68,21 @@ let score = 0;
 let isGameOver = false;
 let undoState = null;
 
-// стартовые плитки
-spawnRandomTiles(grid, 2);
+// 1) пытаемся восстановить игру
+const saved = loadGameState();
 
-setMobileControlsVisible(true);
+if (saved && saved.grid) {
+  grid = saved.grid;
+  score = saved.score || 0;
+
+  // если сохранённое состояние уже без ходов — фиксируем game over
+  isGameOver = !canMove(grid);
+} else {
+  // 2) если сохранять нечего — стартуем новую
+  spawnRandomTiles(grid, 2);
+  saveGameState({ grid, score });
+}
+setMobileControlsVisible(!isGameOver);
 
 function setMobileControlsVisible(visible) {
   const block = document.querySelector("#mobileControls");
@@ -105,7 +117,9 @@ function startNewGame() {
   undoState = null;
 
   spawnRandomTiles(grid, 2);
-
+  setMobileControlsVisible(true);
+  clearGameState();
+saveGameState({ grid, score });
   render();
 }
 
@@ -119,7 +133,7 @@ function undo() {
 
   // один шаг — после отката очищаем undo, чтобы не откатываться бесконечно
   undoState = null;
-
+    saveGameState({ grid, score });
   render();
 }
 
@@ -145,7 +159,7 @@ function tryMove(dir) {
   isGameOver = true;
   setMobileControlsVisible(false);
 }
-
+ saveGameState({ grid, score });
   render();
 }
 
