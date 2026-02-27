@@ -78,6 +78,7 @@ body{
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
   gap: 12px;
+  touch-action: none;
 }
 
 .cell{
@@ -98,7 +99,7 @@ body{
   gap: 10px;
   justify-items: center;
 }
-
+/* На широком экране мобильные кнопки не показываем вообще */
 @media (min-width: 700px){
   .mobile-controls{ display: none !important; }
 }
@@ -171,7 +172,6 @@ body{
   font-size: 14px;
 }
 .leaders-table th{ font-weight: 800; }
-
 .tile--2{ background:#eee4da; color:#776e65; }
 .tile--4{ background:#ede0c8; color:#776e65; }
 .tile--8{ background:#f2b179; color:#f9f6f2; }

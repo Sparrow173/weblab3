@@ -1,11 +1,11 @@
 "use strict";
 import {
-mountModals,
-showModal,
-hideAllModals,
-resetGameOverUI,
-setGameOverSavedUI,
-renderLeadersTable,
+  mountModals,
+  showModal,
+  hideAllModals,
+  resetGameOverUI,
+  setGameOverSavedUI,
+  renderLeadersTable,
 } from "./ui.js";
 import { createEmptyGrid, spawnRandomTiles, applyMove, canMove, cloneGrid } from "./game.js";
 import { saveGameState, loadGameState, clearGameState } from "./storage.js";
@@ -32,7 +32,7 @@ function buildLayout(root) {
   const scoreBox = el("div", { className: "score-box", children: [scoreLabel, scoreValue] });
 
   const btnNew = el("button", { className: "btn", text: "Новая игра", attrs: { id: "btnNew", type: "button" } });
-  const btnUndo = el("button", { className: "btn", text: "Отмена хода", attrs: { id: "btnUndo", type: "button" } });
+  const btnUndo = el("button", {className: "btn", text: "Отмена хода", attrs: { id: "btnUndo", type: "button" }});
   const btnLeaders = el("button", { className: "btn btn-secondary", text: "Лидеры", attrs: { id: "btnLeaders", type: "button" } });
 
   const actions = el("div", { className: "actions", children: [btnNew, btnUndo, btnLeaders] });
@@ -67,10 +67,9 @@ function buildLayout(root) {
 }
 
 buildLayout(document.querySelector("#app"));
-
-buildLayout(document.querySelector("#app"));
 mountModals(document.body);
 
+let grid = createEmptyGrid();
 let prevGrid = createEmptyGrid();
 let score = 0;
 let isGameOver = false;
@@ -90,6 +89,7 @@ if (saved && saved.grid) {
   spawnRandomTiles(grid, 2);
   saveGameState({ grid, score });
 }
+// показываем или скрываем мобильные кнопки
 setMobileControlsVisible(!isGameOver);
 
 function setMobileControlsVisible(visible) {
@@ -156,6 +156,7 @@ function startNewGame() {
   isGameOver = false;
   undoState = null;
 
+  // стартовые плитки: можно 1–3, но обычно 2
   spawnRandomTiles(grid, 2);
   setMobileControlsVisible(true);
   clearGameState();
@@ -164,6 +165,7 @@ saveGameState({ grid, score });
 }
 
 function undo() {
+  
   if (isGameOver) return;
 
   if (!undoState) return;
@@ -185,8 +187,10 @@ function tryMove(dir) {
 
   const res = applyMove(grid, dir);
 
+  // если ход ничего не поменял — undo не трогаем и новых тайлов не спавним
   if (!res.changed) return;
 
+  // фиксируем undo только для успешного хода
   undoState = { grid: beforeGrid, score: beforeScore };
 
   grid = res.grid;
@@ -252,3 +256,53 @@ document.querySelector("#goSave").addEventListener("click", () => {
 });
 document.querySelector("#btnLeaders").addEventListener("click", openLeaders);
 document.querySelector("#leadersClose").addEventListener("click", closeLeaders);
+
+(function enableSwipes() {
+  const board = document.querySelector("#board");
+  if (!board) return;
+
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+
+  const SWIPE_MIN_DIST = 28;     // минимальная дистанция (px)
+  const SWIPE_MAX_TIME = 900;    // чтобы слишком долгие "протаскивания" не считались (ms)
+
+  board.addEventListener("touchstart", (e) => {
+    if (isGameOver) return;
+    // если открыта модалка, свайпы не нужны
+    const overlay = document.querySelector("#overlay");
+    if (overlay && !overlay.classList.contains("hidden")) return;
+
+    const t = e.changedTouches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  board.addEventListener("touchend", (e) => {
+    if (isGameOver) return;
+    const overlay = document.querySelector("#overlay");
+    if (overlay && !overlay.classList.contains("hidden")) return;
+
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    const dt = Date.now() - startTime;
+
+    if (dt > SWIPE_MAX_TIME) return;
+
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    // слишком маленький жест — игнор
+    if (Math.max(absX, absY) < SWIPE_MIN_DIST) return;
+
+    // определяем направление по преобладающей оси
+    if (absX > absY) {
+      tryMove(dx > 0 ? "right" : "left");
+    } else {
+      tryMove(dy > 0 ? "down" : "up");
+    }
+  }, { passive: true });
+})();
