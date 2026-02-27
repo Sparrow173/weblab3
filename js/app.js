@@ -1,7 +1,15 @@
 "use strict";
-import { mountModals } from "./ui.js";
+import {
+mountModals,
+showModal,
+hideAllModals,
+resetGameOverUI,
+setGameOverSavedUI,
+renderLeadersTable,
+} from "./ui.js";
 import { createEmptyGrid, spawnRandomTiles, applyMove, canMove, cloneGrid } from "./game.js";
 import { saveGameState, loadGameState, clearGameState } from "./storage.js";
+import { loadLeaders, addLeaderRecord } from "./storage.js";
 
 function el(tag, opts = {}) {
   const node = document.createElement(tag);
@@ -110,6 +118,18 @@ function render() {
 setMobileControlsVisible(!isGameOver);
 render();
 
+function openLeaders() {
+  const list = loadLeaders();
+  renderLeadersTable(list);
+  showModal("#modalLeaders");
+  setMobileControlsVisible(false);
+}
+
+function closeLeaders() {
+  hideAllModals();
+  setMobileControlsVisible(!isGameOver);
+}
+
 function startNewGame() {
   grid = createEmptyGrid();
   score = 0;
@@ -157,6 +177,14 @@ function tryMove(dir) {
 
   if (!canMove(grid)) {
   isGameOver = true;
+
+  // готовим модалку к показу (сбрасываем "рекорд сохранен" и возвращаем input)
+  resetGameOverUI();
+
+  // показываем модалку окончания игры
+  showModal("#modalGameOver");
+
+  // скрываем мобильное управление, т.к. мы больше "не в игре"
   setMobileControlsVisible(false);
 }
  saveGameState({ grid, score });
@@ -184,3 +212,23 @@ document.querySelector("#mLeft").addEventListener("click", () => tryMove("left")
 document.querySelector("#mRight").addEventListener("click", () => tryMove("right"));
 document.querySelector("#mUp").addEventListener("click", () => tryMove("up"));
 document.querySelector("#mDown").addEventListener("click", () => tryMove("down"));
+document.querySelector("#goRestart").addEventListener("click", () => {
+  hideAllModals();
+  startNewGame();
+});
+document.querySelector("#goSave").addEventListener("click", () => {
+  const input = document.querySelector("#goName");
+  const name = (input.value || "").trim();
+
+  // минимальная валидация, иначе будут пустые записи
+  if (!name) {
+    input.focus();
+    return;
+  }
+
+  addLeaderRecord(name, score);
+
+  setGameOverSavedUI();
+});
+document.querySelector("#btnLeaders").addEventListener("click", openLeaders);
+document.querySelector("#leadersClose").addEventListener("click", closeLeaders);
