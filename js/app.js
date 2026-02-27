@@ -32,7 +32,7 @@ function buildLayout(root) {
   const scoreBox = el("div", { className: "score-box", children: [scoreLabel, scoreValue] });
 
   const btnNew = el("button", { className: "btn", text: "Новая игра", attrs: { id: "btnNew", type: "button" } });
-  const btnUndo = el("button", { className: "btn", text: "Undo", attrs: { id: "btnUndo", type: "button" } });
+  const btnUndo = el("button", { className: "btn", text: "Отмена хода", attrs: { id: "btnUndo", type: "button" } });
   const btnLeaders = el("button", { className: "btn btn-secondary", text: "Лидеры", attrs: { id: "btnLeaders", type: "button" } });
 
   const actions = el("div", { className: "actions", children: [btnNew, btnUndo, btnLeaders] });
@@ -71,7 +71,7 @@ buildLayout(document.querySelector("#app"));
 buildLayout(document.querySelector("#app"));
 mountModals(document.body);
 
-let grid = createEmptyGrid();
+let prevGrid = createEmptyGrid();
 let score = 0;
 let isGameOver = false;
 let undoState = null;
@@ -102,19 +102,39 @@ function render() {
   document.querySelector("#score").textContent = String(score);
 
   const cells = document.querySelectorAll("#board .cell");
+
   let idx = 0;
 
   for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 4; c++) {
-      const v = grid[r][c];
+
+      const value = grid[r][c];
+      const prev = prevGrid[r][c];
+
       const cell = cells[idx++];
 
-      cell.textContent = v === 0 ? "" : String(v);
       cell.className = "cell";
-      if (v !== 0) cell.classList.add(`tile--${v}`);
+
+      if (value !== 0) {
+        cell.textContent = value;
+        cell.classList.add(`tile--${value}`);
+
+        // если плитка появилась
+        if (prev === 0) {
+          cell.classList.add("new-tile");
+        }
+
+      } else {
+        cell.textContent = "";
+      }
+
     }
   }
+
+  // сохраняем текущее поле как предыдущее
+  prevGrid = cloneGrid(grid);
 }
+
 setMobileControlsVisible(!isGameOver);
 render();
 
